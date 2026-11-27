@@ -1,0 +1,23 @@
+name = "chokdeepos"   # ต้องตรงกับชื่อ Worker ในแดชบอร์ด Cloudflare (ถ้าไม่ตรง Workers Builds จะ build ไม่ผ่าน)
+main = "src/worker.js"
+compatibility_date = "2025-06-01"
+
+# หน้า POS (public/) เสิร์ฟเป็นไฟล์สถิตของ Worker
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+# ที่อยู่ Xtra Payment Gateway (UAT/Production) — ไม่ใช่ความลับ ใส่ได้ที่นี่หรือในแดชบอร์ด
+[vars]
+GATEWAY_BASE = "https://gateway.example.com"
+
+# หลังสร้างฐานข้อมูลด้วย `wrangler d1 create chokdee-pos` ให้นำ database_id มาใส่แทนค่าด้านล่าง
+[[d1_databases]]
+binding = "DB"
+database_name = "chokdee-pos"
+database_id = "006b383b-524d-4ce8-bd2d-828a13cd9b8f"
+migrations_dir = "migrations"
+
+# ความลับ (ตั้งด้วย `wrangler secret put ...` ห้ามใส่ในไฟล์นี้):
+#   GATEWAY_TOKEN   Bearer token ของ Xtra Payment Gateway
+#   SESSION_SECRET  สตริงสุ่มยาวๆ สำหรับเซ็นโทเคนล็อกอิน
