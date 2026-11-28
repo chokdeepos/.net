@@ -395,7 +395,7 @@ document.querySelector('.top').innerHTML='<button id="burger" aria-label="เม
 document.querySelector('.top').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='out')logout();if(b.id==='burger')document.body.classList.toggle('nav-open')};
 $('#sub').innerHTML=[['dash','📊','Dashboard'],['menu','🍽️','จัดการเมนู'],['stock','📦','สต๊อก'],['rep','📈','รายงาน'],['set','⚙️','ตั้งค่า'],['sell','🧾','หน้าขาย (POS)']].map(([g,i,t])=>`<button data-g="${g}"><span aria-hidden="true">${i}</span>${t}</button>`).join('');
 $('#sub').hidden=false;
-$('#login').innerHTML=`<div class="card lg"><div class="lh"><b style="font-size:24px">CHOKDEE POS</b><p style="margin:4px 0 0" id="lg-t"></p></div><div class="lb"><div class="tabs2" id="lg-tabs"><button data-lm="pos">หน้าร้าน (POS)</button><button data-lm="in">ผู้ดูแล (Admin)</button></div><label id="lg-nl" hidden>ชื่อร้าน<input id="lg-name"></label><label>รหัสร้าน<input id="lg-code" autocapitalize="characters" autocomplete="username"></label><label id="lg-pl">รหัสผ่าน Admin (อย่างน้อย 4 ตัว)<input id="lg-pin" type="password" autocomplete="current-password"></label><p class="err" id="lg-err" role="alert"></p><button class="btn" id="lg-go"></button><button class="ghost" id="lg-sw" style="margin-top:8px"></button></div></div>`;
+$('#login').innerHTML=`<div class="card lg"><div class="lh"><b style="font-size:24px">CHOKDEE POS</b><p style="margin:4px 0 0" id="lg-t"></p></div><div class="lb"><div class="tabs2" id="lg-tabs"><button data-lm="pos">พนักงาน (POS)</button><button data-lm="in">ผู้จัดการ</button></div><label id="lg-nl" hidden>ชื่อร้าน<input id="lg-name"></label><label>รหัสร้าน<input id="lg-code" autocapitalize="characters" autocomplete="username"></label><label id="lg-pl">รหัสผ่าน Admin (อย่างน้อย 4 ตัว)<input id="lg-pin" type="password" autocomplete="current-password"></label><p class="err" id="lg-err" role="alert"></p><button class="btn" id="lg-go"></button><button class="ghost" id="lg-sw" style="margin-top:8px"></button></div></div>`;
 function applyMode(){
  const p=lmode==='pos',n=lmode==='new';
  $('#lg-nl').hidden=!n;$('#lg-pl').hidden=p;$('#lg-sw').hidden=p;$('#lg-err').textContent='';
@@ -426,7 +426,7 @@ function loadStore(code,r){
  cart=[];cat='ทั้งหมด';dday=ymd(new Date());
  ['#v-orders .pad','#stockp','#repp'].forEach(q=>$(q).innerHTML='');
  document.body.classList.toggle('admin',role==='admin');
- $('#who').textContent=s.name+' ('+code+') · '+(role==='admin'?'Admin':'หน้าร้าน');$('#login').hidden=true;
+ $('#who').textContent=s.name+' ('+code+') · '+(role==='admin'?'ผู้จัดการ':'พนักงาน');$('#login').hidden=true;
  renderMenu();renderCart();go(role==='admin'?'dash':'sell');
 }
 function logout(){stopPoll();try{sessionStorage.removeItem('sess');sessionStorage.removeItem('srole')}catch(e){}NS='';role='pos';document.body.classList.remove('admin','nav-open');$('#dlg').open&&$('#dlg').close();lmode='pos';applyMode();$('#login').hidden=false}
@@ -443,7 +443,7 @@ function go(v){
 let cats=[],groups=[],scats=[],slog=[],alog=[],S={},curCode='',tab={menu:'items',stock:'cur',rep:'sum',set:'gen'},ed={};
 const SD=()=>({gen:{addr:'',phone:'',tax:''},print:{w:'80',head:'',foot:'ขอบคุณที่ใช้บริการ',auto:false},mo:{on:false,slug:'',open:'09:00',close:'21:00'},pay:{cash:true,qr:true},mopay:{qr:true,pp:''},line:{on:false,token:'',gid:'',nbill:true,nstock:true},stock:{neg:false,defmin:5},promos:[]});
 const sv=()=>{const o={menu,cats,groups,stock,scats,slog,alog,S,cfg};for(const k in o)store.set(k,o[k])};
-const log=m=>{alog.unshift({t:new Date().toISOString(),w:role==='admin'?'Admin':'หน้าร้าน',m});alog.length=Math.min(alog.length,300);store.set('alog',alog)};
+const log=m=>{alog.unshift({t:new Date().toISOString(),w:role==='admin'?'ผู้จัดการ':'พนักงาน',m});alog.length=Math.min(alog.length,300);store.set('alog',alog)};
 const _ls=loadStore;loadStore=function(c,r){
  NS=c+':';curCode=c;const m=store.get('menu',JSON.parse(JSON.stringify(DEF)));
  cats=store.get('cats',null)||[...new Set(m.map(x=>x.cat))].map((n,i)=>({id:'c'+i,name:n,group:''}));
@@ -626,7 +626,7 @@ function renderAdm(){const s=view,t=tab[s],f=PG[s+'_'+t],sn={menu:'จัดก�
  $('#admp').innerHTML=`<h2 style="margin:0 0 14px;font-size:20px">${sn} <span class="mute">›</span> ${tn}</h2>${f?f():PG.rep(t)}`}
 
 /* หน้า Login: Admin สร้างบัญชีด้วยอีเมล + รหัสผ่าน (รหัสร้านสร้างให้อัตโนมัติ) */
-$('#login').innerHTML=`<div class="card lg"><div class="lh"><b style="font-size:24px">CHOKDEE POS</b><p style="margin:4px 0 0" id="lg-t"></p></div><div class="lb"><div class="tabs2" id="lg-tabs"><button data-lm="pos">หน้าร้าน (POS)</button><button data-lm="in">ผู้ดูแล (Admin)</button></div><label id="lg-cl">รหัสร้าน<input id="lg-code" autocapitalize="characters" autocomplete="off"></label><label id="lg-ml">อีเมล<input id="lg-mail" type="email" autocomplete="username" inputmode="email"></label><label id="lg-pl">รหัสผ่าน (อย่างน้อย 4 ตัว)<input id="lg-pin" type="password" autocomplete="current-password"></label><p class="err" id="lg-err" role="alert"></p><button class="btn" id="lg-go"></button><button class="ghost" id="lg-sw" style="margin-top:8px"></button></div></div>`;
+$('#login').innerHTML=`<div class="card lg"><div class="lh"><b style="font-size:24px">CHOKDEE POS</b><p style="margin:4px 0 0" id="lg-t"></p></div><div class="lb"><div class="tabs2" id="lg-tabs"><button data-lm="pos">พนักงาน (POS)</button><button data-lm="in">ผู้จัดการ</button></div><label id="lg-cl">รหัสร้าน<input id="lg-code" autocapitalize="characters" autocomplete="off"></label><label id="lg-ml">อีเมล<input id="lg-mail" type="email" autocomplete="username" inputmode="email"></label><label id="lg-pl">รหัสผ่าน (อย่างน้อย 4 ตัว)<input id="lg-pin" type="password" autocomplete="current-password"></label><p class="err" id="lg-err" role="alert"></p><button class="btn" id="lg-go"></button><button class="ghost" id="lg-sw" style="margin-top:8px"></button></div></div>`;
 function applyMode(){
  const p=lmode==='pos',n=lmode==='new';
  $('#lg-cl').hidden=!p;$('#lg-ml').hidden=p;$('#lg-pl').hidden=p;$('#lg-sw').hidden=p;$('#lg-err').textContent='';
@@ -648,7 +648,7 @@ $('#lg-go').onclick=async()=>{
   let code;do{code='CK'+(Math.floor(Math.random()*9000)+1000)}while(s[code]);
   s[code]={name:mail.split('@')[0],email:mail,h:await sha(code+':'+pin)};reg.set(s);
   $('#lg-pin').value='';$('#lg-mail').value='';start(code,'admin');
-  $('#dlg').innerHTML=`<div class="dh"><b>สร้างบัญชีสำเร็จ</b><button data-close>ปิด</button></div><p>รหัสร้านของคุณคือ</p><p class="c big" style="letter-spacing:2px;color:var(--accent)">${code}</p><p class="mute">ให้พนักงานหน้าร้านใช้รหัสนี้เปิดระบบที่แท็บ “หน้าร้าน (POS)” ดูรหัสนี้ได้อีกที่ ตั้งค่า › ตั้งค่าทั่วไป</p><button class="btn" data-close>เข้าใจแล้ว</button>`;$('#dlg').showModal();return}
+  $('#dlg').innerHTML=`<div class="dh"><b>สร้างบัญชีสำเร็จ</b><button data-close>ปิด</button></div><p>รหัสร้านของคุณคือ</p><p class="c big" style="letter-spacing:2px;color:var(--accent)">${code}</p><p class="mute">ให้พนักงานหน้าร้านใช้รหัสนี้เปิดระบบที่แท็บ “พนักงาน (POS)” ดูรหัสนี้ได้อีกที่ ตั้งค่า › ตั้งค่าทั่วไป</p><button class="btn" data-close>เข้าใจแล้ว</button>`;$('#dlg').showModal();return}
  const code=Object.keys(s).find(k=>s[k].email===id.toLowerCase())||(s[id.toUpperCase()]?id.toUpperCase():null);
  if(!code||s[code].h!==await sha(code+':'+pin)){err.textContent='อีเมลหรือรหัสผ่านไม่ถูกต้อง';return}
  $('#lg-pin').value='';$('#lg-mail').value='';start(code,'admin');
@@ -854,7 +854,7 @@ async function cloudEnter(res){
  _rawSet.call(store,'orders',s.orders);s.orders.forEach(o=>sentOrders.set(o.time,JSON.stringify(o)));
  start(code,role);setSync('☁ ซิงก์แล้ว');startPolling();
 }
-function showCodeDlg(code){$('#dlg').innerHTML=`<div class="dh"><b>สร้างบัญชีสำเร็จ</b><button data-close>ปิด</button></div><p>รหัสร้านของคุณคือ</p><p class="c big" style="letter-spacing:2px;color:var(--accent)">${code}</p><p class="mute">ให้พนักงานหน้าร้านใช้รหัสนี้เปิดระบบที่แท็บ “หน้าร้าน (POS)” ดูรหัสนี้ได้อีกที่ ตั้งค่า › ตั้งค่าทั่วไป</p><button class="btn" data-close>เข้าใจแล้ว</button>`;$('#dlg').showModal()}
+function showCodeDlg(code){$('#dlg').innerHTML=`<div class="dh"><b>สร้างบัญชีสำเร็จ</b><button data-close>ปิด</button></div><p>รหัสร้านของคุณคือ</p><p class="c big" style="letter-spacing:2px;color:var(--accent)">${code}</p><p class="mute">ให้พนักงานหน้าร้านใช้รหัสนี้เปิดระบบที่แท็บ “พนักงาน (POS)” ดูรหัสนี้ได้อีกที่ ตั้งค่า › ตั้งค่าทั่วไป</p><button class="btn" data-close>เข้าใจแล้ว</button>`;$('#dlg').showModal()}
 const _go8=$('#lg-go').onclick;
 $('#lg-go').onclick=async()=>{
  if(!CLOUD)return _go8();
@@ -922,6 +922,42 @@ const _rm9=renderMenu;renderMenu=function(){_rm9();document.querySelectorAll('#g
 {const rg=reg.get(),ss=(()=>{try{return sessionStorage.getItem('sess')}catch(e){return null}})();
  if(ss&&rg[ss])loadStore(ss);else{lmode=Object.keys(rg).length?'in':'new';applyMode()}}
 if(!$('#login').hidden){lmode=Object.keys(reg.get()).length?'pos':'new';applyMode()}
+/* ===== สิทธิ์ 3 ระดับ: พนักงานเข้าด้วยชื่อ + PIN, ผู้จัดการ/ผู้จัดการระบบเข้าด้วยอีเมล + รหัสผ่าน ===== */
+let STAFF=null;
+$('#lg-pl').insertAdjacentHTML('beforebegin','<label id="lg-sl" hidden>ชื่อพนักงาน<select id="lg-staff"></select></label>');
+const _am=applyMode;applyMode=function(){_am();STAFF=null;$('#lg-sl').hidden=true;const p=$('#lg-pin');p.removeAttribute('maxlength');p.inputMode='';if(CLOUD)$('#lg-pl').firstChild.textContent='รหัสผ่าน (อย่างน้อย 6 ตัว)'};
+$('#lg-code').addEventListener('input',()=>{if(STAFF)applyMode()});
+const _go9=$('#lg-go').onclick;
+$('#lg-go').onclick=async()=>{
+ if(!CLOUD||lmode!=='pos')return _go9();
+ const err=$('#lg-err');err.textContent='';
+ try{
+  const code=V('lg-code').trim().toUpperCase();if(!code){err.textContent='กรอกรหัสร้าน';return}
+  if(!STAFF||STAFF.code!==code){
+   const r=await cloudPost('/api/staff-list',{code});
+   if(!r.staff.length){await cloudEnter(await cloudPost('/api/pos-login',{code}));return} // ร้านที่ยังไม่ได้ตั้งพนักงาน เข้าด้วยรหัสร้านได้เหมือนเดิม
+   STAFF={code};$('#lg-staff').innerHTML=r.staff.map(u=>`<option value="${esc(u.id)}">${esc(u.name)}</option>`).join('');
+   $('#lg-sl').hidden=false;$('#lg-pl').hidden=false;$('#lg-pl').firstChild.textContent='PIN 4 หลัก';
+   const p=$('#lg-pin');p.value='';p.inputMode='numeric';p.maxLength=4;
+   $('#lg-t').textContent='เลือกชื่อและใส่ PIN';$('#lg-go').textContent='เข้าสู่หน้าขาย';p.focus();return}
+  const pin=V('lg-pin');if(!/^\d{4}$/.test(pin)){err.textContent='PIN ต้องเป็นตัวเลข 4 หลัก';return}
+  const r=await cloudPost('/api/pos-login',{code,userId:V('lg-staff'),pin});$('#lg-pin').value='';await cloudEnter(r);
+ }catch(e){err.textContent=e.message}
+};
+// แสดงชื่อพนักงาน และลิงก์ไปหน้าจัดการพนักงาน / ภาพรวมทุกร้าน ตามสิทธิ์
+const _ce=cloudEnter;
+cloudEnter=async function(res){
+ await _ce(res);
+ try{
+  const sv=JSON.parse(localStorage.getItem('ck_sess')||'null');
+  if(sv){if(res.staff)sv.staff=res.staff;if(res.sys!==undefined)sv.sys=!!res.sys;localStorage.setItem('ck_sess',JSON.stringify(sv))}
+  if(res.staff)$('#who').textContent+=' · '+res.staff;
+  document.querySelectorAll('.top .lnk').forEach(a=>a.remove());
+  const out=$('#out'),lk=(h,t)=>out.insertAdjacentHTML('beforebegin',`<a class="lnk" href="${h}" style="color:#fff;border:1px solid rgba(255,255,255,.7);border-radius:10px;padding:10px 14px;text-decoration:none;font-size:14px;white-space:nowrap">${t}</a>`);
+  if((res.role||(sv&&sv.role))==='admin'){lk('/staff.html','พนักงาน');if(res.sys||(sv&&sv.sys))lk('/hq.html','ภาพรวมทุกร้าน')}
+ }catch(e){}
+};
+
 /* เริ่มโหมดคลาวด์: ตรวจว่าเปิดจาก Worker หรือไม่ แล้วกู้เซสชันเดิม */
 (async()=>{
  try{const r=await fetch('/api/ping');CLOUD=!!(await r.json()).cloud}catch(e){CLOUD=false}

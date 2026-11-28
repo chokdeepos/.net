@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chokdee POS — ภาพรวมทุกร้านและ GP</title>
+<style>
+:root{--bg:#f5f5f6;--card:#fff;--ink:#111;--mute:#555;--line:#e1e1e4;--accent:#c8102e;--ok:#1a8f4d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'Noto Sans Thai',Prompt,system-ui,sans-serif}
+header{background:var(--accent);color:#fff;height:64px;padding:0 16px;display:flex;align-items:center;gap:12px}
+header b{font-size:20px;letter-spacing:.5px;margin-right:auto}header a{color:#fff;border:1px solid rgba(255,255,255,.7);border-radius:10px;padding:10px 14px;text-decoration:none;font-size:14px}
+main{max-width:1100px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+input,select,button{font:inherit;min-height:44px;border-radius:10px;border:1px solid var(--line);padding:0 10px;background:#fff}button{cursor:pointer}button.go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}.kpi div:first-child{background:var(--accent);color:#fff;border-color:var(--accent)}
+.kpi span{display:block;font-size:14px;opacity:.85}.kpi b{font-size:28px;font-variant-numeric:tabular-nums}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:820px}th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line);font-size:15px}th{color:var(--mute);font-weight:500;font-size:13px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}input.gp{width:80px;text-align:right}.mute{color:var(--mute);font-size:14px}.err{color:var(--accent);min-height:22px}
+.chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:99px;background:#fdecef;color:#9e0c24}.chip.out{background:#fff4d6;color:#7a5600}
+</style></head><body>
+<header><b>CHOKDEE POS</b><span style="font-size:14px">ผู้จัดการระบบ · ภาพรวมทุกร้าน</span><a href="/">กลับหน้าหลัก</a></header>
+<main>
+<div class="card" id="gate" hidden><b>ต้องเป็นผู้จัดการระบบ</b><p class="mute">เปิดหน้าหลัก เข้าสู่ระบบด้วยอีเมลของผู้จัดการระบบ แล้วกลับมาที่หน้านี้</p></div>
+<div id="app" hidden>
+<div class="card bar"><label>ตั้งแต่ <input type="date" id="f"></label><label>ถึง <input type="date" id="t"></label><button class="go" id="go">ดูข้อมูล</button><button id="csv">ส่งออก CSV</button><span class="mute">วันที่ตามวันของบิล</span></div>
+<div class="kpi"><div><span>ยอดขายรวม</span><b id="ks">-</b></div><div><span>GP ที่ต้องจ่ายมหาวิทยาลัย</span><b id="kg">-</b></div><div><span>จำนวนบิล</span><b id="kb">-</b></div></div>
+<div class="card"><div class="tw"><table><thead><tr><th>ร้าน</th><th>ประเภท</th><th class="n">บิล</th><th class="n">ยอดขาย</th><th class="n">GP %</th><th class="n">GP (บาท)</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="err" id="e" role="alert"></p>
+<p class="mute">ยอดไม่รวมบิลที่ยกเลิก GP คำนวณจากอัตราที่ตั้งไว้ของแต่ละร้านเป็นตัวเลขประมาณการ ยอดจริงที่จ่ายมหาวิทยาลัยให้ยึดตามสัญญาและใบสรุปของมหาวิทยาลัย</p></div>
+</div></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money=v=>'฿'+Number(v).toLocaleString('th-TH',{maximumFractionDigits:2});
+let T=null;try{T=(JSON.parse(localStorage.getItem('ck_sess')||'null')||{}).token}catch(e){}
+async function api(p,b){const r=await fetch(p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+T},body:b?JSON.stringify(b):undefined});const j=await r.json().catch(()=>({}));if(!r.ok){const e=new Error(j.detail||'เกิดข้อผิดพลาด');e.status=r.status;throw e}return j}
+let DATA=[];
+const today=new Date(Date.now()+7*3600e3).toISOString().slice(0,10);$('#f').value=today;$('#t').value=today;
+async function load(){$('#e').textContent='';
+ try{const r=await api('/api/hq?from='+$('#f').value+'&to='+$('#t').value);DATA=r.stores;$('#gate').hidden=true;$('#app').hidden=false;draw()}
+ catch(e){if(e.status===401||e.status===403){$('#app').hidden=true;$('#gate').hidden=false}else $('#e').textContent=e.message}}
+function draw(){
+ $('#rows').innerHTML=DATA.map((s,i)=>`<tr data-i="${i}"><td><b>${esc(s.name)}</b><br><span class="mute">${esc(s.code)}</span></td>
+ <td><select class="k"><option value="in"${s.kind==='in'?' selected':''}>ในเครือ</option><option value="out"${s.kind==='out'?' selected':''}>ร้านภายนอก</option></select></td>
+ <td class="n">${s.bills}</td><td class="n">${money(s.sales)}</td><td class="n"><input class="gp" type="number" min="0" max="100" step="0.5" value="${s.gpRate}"></td><td class="n"><b>${money(s.gp)}</b></td><td><button data-a="save">บันทึก</button></td></tr>`).join('')||'<tr><td colspan="7" class="mute">ยังไม่มีร้าน</td></tr>';
+ const sum=k=>DATA.reduce((a,s)=>a+s[k],0);$('#ks').textContent=money(sum('sales'));$('#kg').textContent=money(sum('gp'));$('#kb').textContent=sum('bills').toLocaleString('th-TH');
+}
+$('#rows').onclick=async e=>{const b=e.target.closest('[data-a=save]');if(!b)return;const tr=b.closest('tr'),s=DATA[+tr.dataset.i];$('#e').textContent='';
+ try{await api('/api/hq/store',{code:s.code,gpRate:tr.querySelector('.gp').value,kind:tr.querySelector('.k').value});load()}catch(er){$('#e').textContent=er.message}};
+$('#go').onclick=load;
+$('#csv').onclick=()=>{const q=v=>'"'+String(v).replace(/"/g,'""')+'"',safe=v=>/^[=+\-@]/.test(String(v))?"'"+v:v;
+ const rows=[['รหัสร้าน','ชื่อร้าน','ประเภท','บิล','ยอดขาย','GP %','GP บาท']].concat(DATA.map(s=>[s.code,s.name,s.kind==='out'?'ร้านภายนอก':'ในเครือ',s.bills,s.sales,s.gpRate,s.gp]));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+rows.map(r=>r.map(v=>q(safe(v))).join(',')).join('\n')],{type:'text/csv;charset=utf-8'}));a.download='gp-'+$('#f').value+'_'+$('#t').value+'.csv';a.click()};
+load();
+</script></body></html>
